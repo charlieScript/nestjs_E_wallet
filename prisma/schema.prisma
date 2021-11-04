@@ -1,0 +1,72 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["interactiveTransactions"]
+}
+
+model users {
+  email             String              @id @unique
+  first_name        String
+  last_name         String
+  password          String
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  accounts          accounts[]
+  transactions      transactions[]
+  card_transactions card_transactions[]
+}
+
+model accounts {
+  id        Int      @id @default(autoincrement())
+  user      users    @relation(fields: [user_id], references: [email])
+  user_id   String   @unique
+  balance   Decimal  @db.Decimal(20, 2)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model transactions {
+  id             Int       @id @default(autoincrement())
+  txn_type       Etxn_type
+  purpose        Epurpose
+  amount         Decimal   @db.Decimal(20, 2)
+  user           users     @relation(fields: [account_id], references: [email])
+  account_id     String
+  reference      String    @default(uuid())
+  balance_before Decimal?   @db.Decimal(20, 2)
+  balance_after  Decimal?   @db.Decimal(20, 2)
+  metadata       Json?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model card_transactions {
+  id                 Int      @id @default(autoincrement())
+  external_reference String   @unique
+  user               users    @relation(fields: [account_id], references: [email])
+  account_id         String
+  amount             Decimal  @db.Decimal(20, 2)
+  last_response      String   
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+enum Etxn_type {
+  debit
+  credit
+}
+
+enum Epurpose {
+  deposit
+  transfer
+  reversal
+  withdrawal
+  card_funding
+}
