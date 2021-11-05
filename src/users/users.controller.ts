@@ -44,7 +44,12 @@ export class UsersController {
 
     const hashPassword = await hash(createDto.password, 10);
 
-    await this.userService.createUser(createDto);
+    await this.userService.createUser({
+      email: createDto.email,
+      first_name: createDto.first_name,
+      last_name: createDto.last_name,
+      password: hashPassword,
+    });
     const jwt = this.authService.login(createDto.email);
     return {
       success: true,
