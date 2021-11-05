@@ -1,5 +1,5 @@
 // schema rep of object
-import { IsEmail, IsNotEmpty, Max, Min } from 'class-validator';
+import { IsEmail, IsNotEmpty, Length, Max, Min } from 'class-validator';
 export class CreateUserDto {
   @IsEmail()
   @IsNotEmpty()
@@ -12,5 +12,6 @@ export class CreateUserDto {
   last_name: string;
 
   @IsNotEmpty()
+  @Length(6, 20)
   password: string;
 }
