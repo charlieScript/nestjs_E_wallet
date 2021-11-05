@@ -1,20 +1,10 @@
-import {
-  Controller,
-  UseGuards,
-  Post,
-  Request,
-  Body,
-  BadRequestException,
-  HttpException,
-  HttpStatus,
-  Res,
-} from '@nestjs/common';
+import { Controller, Post, Body, Res } from '@nestjs/common';
 import { hash, compare } from 'bcrypt';
 import { Response } from 'express';
-import { IHelperResponse } from 'src/helpers/response.interface';
+// import { IHelperResponse } from 'src/helpers/response.interface';
 import { AuthService } from '../auth/auth.service';
 // import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { LocalAuthGuard } from '../auth/local-auth.guard';
+// import { LocalAuthGuard } from '../auth/local-auth.guard';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { UserService } from './users.service';
