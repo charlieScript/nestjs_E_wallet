@@ -1,9 +1,11 @@
-import { Body, Controller, Logger, Post } from '@nestjs/common';
+import { Body, Controller, Logger, Post, UseGuards } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CardsService } from './cards.service';
 import { CardDto } from './dto/card.dto';
+import { OTPDto, PhoneDto, PINDto } from './dto/misc-data.dto';
 
+@UseGuards(JwtAuthGuard)
 @Controller('/api/cards')
 export class CardsController {
   constructor(
@@ -45,6 +47,115 @@ export class CardsController {
         }
 
         if (!result) {
+          return {
+            success: true,
+            status: 200,
+            message: 'Funding failed',
+          };
+        }
+      });
+      // return {
+      //   ...res,
+      // };
+    } catch (error) {
+      Logger.error(error);
+      return {
+        success: false,
+        status: 400,
+        error: 'charge not successful',
+      };
+    }
+  }
+
+  @Post('/charge/send_pin')
+  async sendPin(@Body() reference: PINDto): Promise<any> {
+    // 1. charge card
+    try {
+      await this.prisma.$transaction(async () => {
+        const result = await this.cardService.submitPIN(
+          reference.ref,
+          reference.pin,
+        );
+        if (result.data.data.status === 'send_otp') {
+          return {
+            success: false,
+            status: 200,
+            message: 'Funding Failed Send OTP with payload and the reference',
+            reference: result.data.data.reference,
+          };
+        }
+
+        if (!result?.success) {
+          return {
+            success: true,
+            status: 200,
+            message: 'Funding failed',
+          };
+        }
+      });
+      // return {
+      //   ...res,
+      // };
+    } catch (error) {
+      Logger.error(error);
+      return {
+        success: false,
+        status: 400,
+        error: 'charge not successful',
+      };
+    }
+  }
+
+  @Post('/charge/send_pin')
+  async sendOtp(@Body() reference: OTPDto): Promise<any> {
+    // 1. charge card
+    try {
+      await this.prisma.$transaction(async () => {
+        const result = await this.cardService.submitPIN(
+          reference.ref,
+          reference.otp,
+        );
+        if (result.data.data.status === 'send_phone') {
+          return {
+            success: false,
+            status: 200,
+            message: 'Funding Failed Send OTP with payload and the reference',
+            reference: result.data.data.reference,
+          };
+        }
+
+        if (!result?.success) {
+          return {
+            success: true,
+            status: 200,
+            message: 'Funding failed',
+          };
+        }
+      });
+      // return {
+      //   ...res,
+      // };
+    } catch (error) {
+      Logger.error(error);
+      return {
+        success: false,
+        status: 400,
+        error: 'charge not successful',
+      };
+    }
+  }
+
+  @Post('/charge/send_pin')
+  async sendPhone(@Body() reference: PhoneDto): Promise<any> {
+    // 1. charge card
+    try {
+      await this.prisma.$transaction(async () => {
+        const result = await this.cardService.submitPIN(
+          reference.ref,
+          reference.phone,
+        );
+
+        if (!result?.success) {
           return {
             success: true,
             status: 200,
