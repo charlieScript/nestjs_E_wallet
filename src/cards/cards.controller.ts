@@ -5,14 +5,14 @@ import { CardsService } from './cards.service';
 import { CardDto } from './dto/card.dto';
 import { OTPDto, PhoneDto, PINDto } from './dto/misc-data.dto';
 
-@UseGuards(JwtAuthGuard)
-@Controller('/api/cards')
+@Controller('/api/card')
 export class CardsController {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cardService: CardsService,
   ) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post('/charge')
   async chargeCard(@Body() card: CardDto): Promise<any> {
     // 1. charge card

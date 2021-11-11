@@ -1,4 +1,12 @@
-import { Controller, Post, Body, Res } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Res,
+  UseGuards,
+  Get,
+  Req,
+} from '@nestjs/common';
 import { hash, compare } from 'bcrypt';
 import { Response } from 'express';
 // import { IHelperResponse } from 'src/helpers/response.interface';
@@ -27,7 +35,7 @@ export class UsersController {
       email: loginDto.email,
     });
     if (existingUser) {
-      const jwt = this.authService.login(loginDto.email);
+      const jwt = this.authService.login(loginDto);
       const passwordChecker = await compare(
         loginDto.password,
         existingUser.password,
@@ -40,14 +48,14 @@ export class UsersController {
           data: { token: (await jwt).access_token },
         };
       } else {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           status: 400,
           error: 'Invalid username and/or password.',
         });
       }
     } else {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         status: 400,
         error: 'Invalid username and/or password.',
@@ -60,32 +68,43 @@ export class UsersController {
     @Body() createDto: CreateUserDto,
     @Res({ passthrough: true }) res: Response,
   ): Promise<any> {
-    // check for existing user
-    const existingUser = await this.userService.findUserWithEmail({
-      email: createDto.email,
-    });
-    if (existingUser) {
-      return res.status(400).json({
-        success: false,
-        status: 400,
-        error: 'Account Already Exists',
+    try {
+      // check for existing user
+      const existingUser = await this.userService.findUserWithEmail({
+        email: createDto.email,
       });
+
+      if (existingUser) {
+        res.status(400).json({
+          success: false,
+          status: 400,
+          error: 'Account Already Exists',
+        });
+      }
+
+      const hashPassword = await hash(createDto.password, 10);
+
+      await this.userService.createUser({
+        email: createDto.email,
+        first_name: createDto.first_name,
+        last_name: createDto.last_name,
+        password: hashPassword,
+      });
+      const jwt = this.authService.login(createDto.email);
+      return {
+        success: true,
+        status: 200,
+        message: 'Account successfully created',
+        data: { token: (await jwt).access_token },
+      };
+    } catch (error) {
+      console.log(error);
+
+      return {
+        success: false,
+        status: 500,
+        message: 'Internal Server Error',
+      };
     }
-
-    const hashPassword = await hash(createDto.password, 10);
-
-    await this.userService.createUser({
-      email: createDto.email,
-      first_name: createDto.first_name,
-      last_name: createDto.last_name,
-      password: hashPassword,
-    });
-    const jwt = this.authService.login(createDto.email);
-    return {
-      success: true,
-      status: 200,
-      message: 'Account successfully created',
-      data: { token: (await jwt).access_token },
-    };
   }
 }
