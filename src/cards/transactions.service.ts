@@ -42,7 +42,7 @@ export class TransactionService {
       },
     });
 
-    await this.prisma.transactions.create({
+    const txn = await this.prisma.transactions.create({
       data: {
         amount,
         purpose,
@@ -58,6 +58,7 @@ export class TransactionService {
     return {
       success: true,
       message: 'Credit successful',
+      txn,
     };
   }
 
@@ -97,7 +98,7 @@ export class TransactionService {
       },
     });
 
-    await this.prisma.transactions.create({
+    const txn = await this.prisma.transactions.create({
       data: {
         amount,
         purpose,
@@ -113,6 +114,7 @@ export class TransactionService {
     return {
       success: true,
       message: 'Debit successful',
+      txn,
     };
   }
 }

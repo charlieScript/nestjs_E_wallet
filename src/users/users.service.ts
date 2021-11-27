@@ -6,11 +6,11 @@ import { users, Prisma, accounts } from '@prisma/client';
 export class UserService {
   constructor(private prisma: PrismaService) {}
 
-  async findUserWithEmail(
-    userWhereUniqueInput: Prisma.usersWhereUniqueInput,
-  ): Promise<users | null> {
+  async findUserWithEmail(email): Promise<users | null> {
     return this.prisma.users.findUnique({
-      where: userWhereUniqueInput,
+      where: {
+        email: email,
+      },
     });
   }
 

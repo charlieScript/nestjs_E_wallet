@@ -69,6 +69,7 @@ export class CardsService {
             Authorization: `Bearer ${this.BEARER_TOKEN}`,
           },
           maxRedirects: 5,
+          timeout: 5000,
         },
       );
 

@@ -19,6 +19,12 @@ async function bootstrap() {
   // app.use(passport.initialize());
   // app.use(passport.session())
   // validation
+  // app.use((_req, res): void => {
+  //   res.status(404).send({
+  //     success: false,
+  //     error: 'resource not found',
+  //   });
+  // });
   app.useGlobalPipes(new ValidationPipe());
   dotenv.config();
 

@@ -56,14 +56,14 @@ export class CardsController {
           extra_details: `${card.amount} was paid into ${req.user.email} account`,
         });
       }
-      // if (result.data.data.status === 'send_pin') {
-      //   return {
-      //     success: false,
-      //     status: 200,
-      //     message: 'Funding Failed Send Pin with payload and the reference',
-      //     reference: result.data.data.reference,
-      //   };
-      // }
+      if (result.data.data.status === 'send_pin') {
+        return {
+          success: false,
+          status: 200,
+          message: 'Funding Failed Send Pin with payload and the reference',
+          reference: result.data.data.reference,
+        };
+      }
       // });
     } catch (error) {
       console.log(error);
