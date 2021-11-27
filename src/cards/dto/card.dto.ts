@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, Length } from 'class-validator';
+import { IsNotEmpty, Length } from 'class-validator';
 
 export class CardDto {
   @Length(16, 16)
@@ -16,10 +16,6 @@ export class CardDto {
   @Length(2, 2)
   @IsNotEmpty()
   expiry_month: number;
-
-  @IsEmail()
-  @IsNotEmpty()
-  email: string;
 
   @IsNotEmpty()
   amount: number;

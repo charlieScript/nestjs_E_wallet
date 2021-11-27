@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Post,
-  Body,
-  Res,
-  UseGuards,
-  Get,
-  Req,
-} from '@nestjs/common';
+import { Controller, Post, Body, Res } from '@nestjs/common';
 import { hash, compare } from 'bcrypt';
 import { Response } from 'express';
 // import { IHelperResponse } from 'src/helpers/response.interface';
@@ -34,12 +26,14 @@ export class UsersController {
     const existingUser = await this.userService.findUserWithEmail({
       email: loginDto.email,
     });
+
     if (existingUser) {
       const jwt = this.authService.login(loginDto);
       const passwordChecker = await compare(
         loginDto.password,
         existingUser.password,
       );
+
       if (passwordChecker) {
         return {
           success: true,
@@ -80,17 +74,22 @@ export class UsersController {
           status: 400,
           error: 'Account Already Exists',
         });
+        return;
       }
 
       const hashPassword = await hash(createDto.password, 10);
 
-      await this.userService.createUser({
+      const newUser = await this.userService.createUser({
         email: createDto.email,
         first_name: createDto.first_name,
         last_name: createDto.last_name,
         password: hashPassword,
       });
-      const jwt = this.authService.login(createDto.email);
+      await this.userService.createAccount({
+        user_id: newUser.email,
+        balance: 0.0,
+      });
+      const jwt = this.authService.login(createDto);
       return {
         success: true,
         status: 200,

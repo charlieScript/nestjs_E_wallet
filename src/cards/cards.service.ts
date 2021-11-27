@@ -24,13 +24,17 @@ export class CardsService {
     card: CardObject,
     email: string,
     amount: number,
-    pin: number,
-    otp: number,
-    phone: number,
+    pin?: number,
+    otp?: number,
+    phone?: number,
   ): Promise<any> {
     try {
       return await this.prisma.$transaction(async () => {
         const result = await this.chargeCard(card, email, amount);
+        if (result) {
+          return result;
+        }
+
         if (result?.nextAction === 'send_pin') {
           await this.submitPIN(result.txn_ref, pin);
         }
@@ -64,49 +68,44 @@ export class CardsService {
           headers: {
             Authorization: `Bearer ${this.BEARER_TOKEN}`,
           },
+          maxRedirects: 5,
         },
       );
 
       // successful charge card
       if (charge.data.data.status === 'success') {
-        await this.prisma.$transaction(async (prisma) => {
-          // console.log(charge);
+        // await this.prisma.$transaction(async (prisma) => {
+        const txn = await this.prisma.card_transactions.create({
+          data: {
+            account_id: email,
+            amount: amount,
+            external_reference: charge.data.data.reference,
+            last_response: charge.data.data.status,
+          },
+        });
 
-          const txn = await prisma.card_transactions.create({
-            data: {
-              account_id: email,
-              amount: amount,
-              external_reference: charge.data.data.reference,
-              last_response: charge.data.data.status,
-            },
-          });
-
-          const creditResult = await this.transactionsService.creditAccount(
-            amount,
-            email,
-            'card_funding',
-            charge.data.data,
-          );
-
-          if (!creditResult.success) {
-            return {
-              success: false,
-              error: 'Could not credit account',
-              txn_ref: txn.external_reference,
-              nextAction: txn.last_response,
-            };
-          }
+        const creditResult = await this.transactionsService.creditAccount(
+          amount,
+          email,
+          'card_funding',
+          charge.data.data,
+        );
+        // console.log(creditResult, txn);
+        if (!creditResult.success) {
           return {
-            success: true,
-            message: 'Charge successful',
+            success: false,
+            error: 'Could not credit account',
             txn_ref: txn.external_reference,
             nextAction: txn.last_response,
           };
-        });
-      } else {
+        }
         return {
-          data: charge.data,
+          success: true,
+          message: 'Charge successful',
+          txn_ref: txn.external_reference,
+          nextAction: txn.last_response,
         };
+        // });
       }
     } catch (error) {
       Logger.error(error);
